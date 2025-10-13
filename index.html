@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Aleatorio de 10 Preguntas - Organización del Departamento de Pisos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Configuración de la fuente Inter y estilos base */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+        }
+        .question-card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        /* Estilo base para las opciones no checked */
+        .option-label {
+            background-color: #ffffff;
+        }
+        /* Clases de resultado (definidas por JS después de Check) */
+        .correct-answer-card {
+            background-color: #d1fae5; /* Verde muy claro */
+            border-left: 5px solid #059669; /* Verde esmeralda */
+        }
+        .incorrect-answer-card {
+            background-color: #fee2e2; /* Rojo muy claro */
+            border-left: 5px solid #ef4444; /* Rojo fuerte */
+        }
+        .correct-feedback {
+            color: #059669;
+            font-weight: 600;
+        }
+        .rationale-box {
+            background-color: #f0f9ff; /* Azul muy claro */
+            border: 1px solid #93c5fd; /* Azul de borde */
+            color: #1e40af; /* Azul oscuro para el texto */
+        }
+        .animate-pop {
+            animation: pop-in 0.3s ease-out;
+        }
+        @keyframes pop-in {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+    <script>
+        // Array de 155 preguntas generadas a partir del PDF "Organización del Departamento de Pisos.pdf"
+        const allQuestions = [
+            { q: "¿Qué figura profesional, de reconocido prestigio, asume la organización del Departamento de Pisos?", o: ["Jefe/a de Recepción", "Gobernanta/e", "Director/a de Alojamiento", "Maître."], a: 1, r: "La organización del Departamento de Pisos recae en la figura de la Gobernanta o el Gobernanta, un puesto clave y de gran prestigio en la hostelería." },
+            { q: "¿Cuál es la posición del Departamento de Pisos dentro del servicio de alojamiento a los clientes?", o: ["Secundaria", "Central", "Auxiliar", "Periférica"], a: 1, r: "El Departamento de Pisos ocupa el lugar central del servicio de alojamiento, siendo su inexistencia una inviabilidad para la prestación del servicio." },
+            { q: "¿Con qué están íntimamente relacionados los criterios de limpieza en la evaluación de servicios de los alojamientos turísticos?", o: ["Con el precio del alojamiento", "Con el tamaño de la plantilla", "Con los estándares de calidad", "Con la política de marketing"], a: 2, r: "Los criterios de limpieza son fundamentales y están directamente relacionados con los estándares de calidad del alojamiento." },
+            { q: "¿Cómo se conoce en el marco general del alojamiento turístico al departamento de la gobernanta y la situación de sus actividades?", o: ["Front Office", "Back Office", "Housekeeping", "Facility Management"], a: 2, r: "El término comúnmente utilizado para definir el departamento de la gobernanta y sus actividades es Housekeeping." },
+            { q: "¿En qué momento se inician las actividades del Departamento de Pisos encaminadas a ofrecer servicio al cliente?", o: ["Al inicio de la reserva del cliente", "Una vez superado el período de reserva y check-in", "Un día antes de la llegada del cliente", "Solo durante el check-out"], a: 1, r: "Las actividades de servicio se inician una vez que se ha superado el período de reserva y el check-in, es decir, durante la estancia del cliente." },
+            { q: "El departamento de la gobernanta/el gobernante actúa como...", o: ["Un mero ejecutor de tareas", "Un punto de unión y referencia", "Un departamento aislado", "Un centro de costes exclusivo"], a: 1, r: "El departamento es un punto de unión y referencia dentro de los establecimientos hoteleros, conectando diversas áreas." },
+            { q: "¿Cuál es la principal actividad 'De producción' del Departamento de Pisos?", o: ["La gestión de nóminas", "Limpiar habitaciones y salones para ponerlos a la venta", "La recepción de clientes", "El servicio de comidas"], a: 1, r: "Su actividad de producción consiste en preparar habitaciones y salones limpios para que puedan ser vendidos." },
+            { q: "¿Cómo se denominan las actividades del departamento que posibilitan operaciones de otros departamentos (ej. restaurante)?", o: ["De delegación", "De soporte", "De coordinación", "De mantenimiento preventivo"], a: 1, r: "Estas son actividades de soporte, ya que intervienen en el funcionamiento de otros departamentos como el restaurante." },
+            { q: "¿Cuál de estas NO es una característica del Departamento de Pisos?", o: ["Sus actividades se desarrollan en casi la totalidad del hotel", "Gestiona un enorme volumen de recursos materiales", "Su equipo humano es uno de los más numerosos", "Su función principal es la comercialización de paquetes turísticos"], a: 3, r: "La comercialización de paquetes turísticos no es una función del Departamento de Pisos, sino del Departamento Comercial o Recepción." },
+            { q: "¿En qué parte del hotel se desarrollan las actividades del Departamento de Pisos?", o: ["Solamente en las habitaciones de clientes", "En la zona de lavandería exclusivamente", "En casi la totalidad de las instalaciones del hotel", "Únicamente en las zonas comunes"], a: 2, r: "Una de sus características esenciales es que sus actividades se extienden a casi la totalidad de las instalaciones del hotel." },
+            { q: "¿Qué tipo de recurso material NO gestiona un enorme volumen el Departamento de Pisos?", o: ["Mobiliario", "Lencería", "Productos de limpieza", "Maquinaria pesada para construcción"], a: 3, r: "El departamento gestiona recursos como mobiliario, lencería y productos de limpieza, pero no maquinaria pesada para construcción." },
+            { q: "¿Qué porcentaje del equipo humano del Departamento de Pisos tiene tradicionalmente un alto porcentaje de mujeres?", o: ["Menos del 25%", "Alrededor del 50%", "Un alto porcentaje", "Es un equipo totalmente paritario"], a: 2, r: "Su equipo humano es uno de los más numerosos y tradicionalmente con un alto porcentaje de mujeres." },
+            { q: "¿Cuántos son los objetivos principales del Departamento de Pisos mencionados en el temario?", o: ["Tres", "Cuatro", "Cinco", "Seis"], a: 2, r: "Los cinco objetivos mencionados son: Atención al cliente, Limpieza, Mantenimiento, Dotación y Calidad." },
+            { q: "¿Cuál de los objetivos del departamento comparte su prioridad con todos los departamentos del hotel?", o: ["El mantenimiento", "La dotación", "La calidad", "La atención al cliente"], a: 3, r: "La atención al cliente es una prioridad compartida por todos los departamentos del hotel." },
+            { q: "¿Cuál es el objetivo principal respecto a la limpieza?", o: ["Reducir costes de lavandería", "Mantener limpias todas las áreas del hotel", "Repartir la lencería a tiempo", "Coordinar con Recepción"], a: 1, r: "El objetivo directo es mantener limpias todas las áreas del hotel, estableciendo sistemas de seguimiento y repasos." },
+            { q: "En el objetivo de la limpieza, ¿qué tiene un 'papel protagonista'?", o: ["El control de gasto", "La insonorización", "La higiene", "La rapidez en el servicio"], a: 2, r: "Se destaca el papel protagonista de la higiene en el proceso de limpieza." },
+            { q: "El objetivo del Mantenimiento busca garantizar...", o: ["Solo el aspecto estético", "Solo las reparaciones de emergencia", "El perfecto estado de conservación y funcionamiento de todas las instalaciones", "La ampliación de las instalaciones"], a: 2, r: "Se trata de garantizar el perfecto estado de conservación y funcionamiento de todas las instalaciones y equipamiento, mediante revisiones continuas y reparaciones." },
+            { q: "¿Qué implica el objetivo de la Dotación?", o: ["La gestión de la cocina del hotel", "La detección de falta/carencia de elementos que hagan confortable la estancia", "La contratación de nuevo personal", "La compra de mobiliario nuevo para el hall"], a: 1, r: "Dotación implica detectar la falta o carencia de elementos de decoración y montaje que son necesarios para la confortabilidad del cliente." },
+            { q: "El objetivo de la Calidad se basa, principalmente, en...", o: ["La maximización de la rentabilidad", "La plena satisfacción del cliente y su fidelización", "La reducción de las quejas", "La optimización de los turnos de trabajo"], a: 1, r: "Se basa en la plena satisfacción del cliente y su fidelización, respondiendo a las necesidades y superando las expectativas." },
+            { q: "¿Qué implica el objetivo de Calidad en relación con las operaciones del departamento?", o: ["El aumento de la plantilla", "La vigilancia del cumplimiento de los estándares establecidos", "La subcontratación de servicios", "La creación de nuevos puestos de trabajo"], a: 1, r: "Implica la vigilancia del cumplimiento de los estándares establecidos para cada una de las operaciones." },
+            { q: "¿Cuál de los siguientes NO es uno de los cinco objetivos principales del Departamento de Pisos?", o: ["Dotación", "Mantenimiento", "Limpieza", "Marketing"], a: 3, r: "Los cinco objetivos son: Atención al cliente, Limpieza, Mantenimiento, Dotación y Calidad. Marketing no está entre ellos." },
+            { q: "¿Qué aspecto es considerado como el más importante dentro del objetivo de Atención al Cliente?", o: ["Acelerar el check-in", "Satisfacer las necesidades y expectativas de los clientes", "Garantizar la uniformidad del personal", "Aumentar la ocupación"], a: 1, r: "Lo más importante es satisfacer las necesidades y expectativas de los clientes." },
+            { q: "La responsabilidad última de todas las tareas que se desarrollan en el departamento de pisos es asumida íntegramente por...", o: ["El Director del Hotel", "La Recepción", "La Gobernanta", "El Jefe de Mantenimiento"], a: 2, r: "La Gobernanta (o Gobernanta) asume la responsabilidad íntegra de todas las tareas del departamento." },
+            { q: "Para organizar los trabajos en el departamento, es necesario delimitar...", o: ["Las horas extra del personal", "Las áreas donde se tienen que realizar", "Los tipos de clientes VIPS", "Los productos de bienvenida"], a: 1, r: "Es crucial delimitar las áreas donde se tienen que realizar los trabajos para una organización efectiva." },
+            { q: "Aunque compartan objetivos, en cada área del departamento se desarrollan actividades diferentes con...", o: ["Rotación obligatoria del personal", "Supervisión constante de la dirección", "Especialización del personal que las atienda", "Menor dotación de materiales"], a: 2, r: "Se requiere la especialización del personal que atienda cada área específica." },
+            { q: "¿Cuál de las siguientes NO es un área que compone generalmente el departamento de Housekeeping?", o: ["Área de Habitaciones", "Zonas Nobles", "Recursos Humanos", "Lavandería-Lencería"], a: 2, r: "Las áreas son: Habitaciones, Zonas Nobles, Zonas Comunes, Lavandería-Lencería y Zonas Externas." },
+            { q: "¿Cuál es el área de mayor dimensión del Departamento de Pisos?", o: ["Zonas Comunes", "Zonas Nobles", "Área de Habitaciones", "Lavandería"], a: 2, r: "El Área de Habitaciones es la de mayor dimensión, incluyendo pasillos, escaleras, ascensores de clientes y offices." },
+            { q: "¿Qué tipo de dependencias están incluidas en el Área de Habitaciones?", o: ["Vestuarios", "Despacho Dirección", "Jardines externos", "Offices"], a: 3, r: "Incluye las habitaciones, cuartos de apoyo, pasillos, escaleras y ascensores de clientes, además de offices." },
+            { q: "¿De qué dependerá la asignación de recursos humanos y materiales al Área de Habitaciones?", o: ["Del precio del menú", "Del tipo de establecimiento hotelero", "Del número de recepcionistas", "Del clima de la ciudad"], a: 1, r: "La asignación de recursos a esta área depende del tipo de establecimiento hotelero." },
+            { q: "¿Qué se considera el 'escaparate del hotel' y evidencia muchas de las operaciones al cliente?", o: ["El economato", "La Lavandería", "Las Zonas Nobles", "El comedor del personal"], a: 2, r: "Las Zonas Nobles son el escaparate del hotel y donde el cliente observa las operaciones de limpieza y mantenimiento." },
+            { q: "Las Zonas Nobles son utilizadas **exclusivamente** por el cliente, y el personal puede transitar por ellas solo si...", o: ["No lleva equipaje", "Lo hace de forma rápida", "Está debidamente uniformado y solo durante su servicio", "Va acompañado por un jefe"], a: 2, r: "El personal debe transitar debidamente uniformado y solo durante la prestación de su servicio." },
+            { q: "¿Cuál de las siguientes es una dependencia que forma parte de las **Zonas Nobles**?", o: ["Economato", "Montacargas", "Salones de banquetes y reuniones", "Vestuarios"], a: 2, r: "Dependencias como Hall, Salones de banquetes y reuniones, Bares, Restaurantes y Gimnasio forman parte de las Zonas Nobles." },
+            { q: "¿En qué áreas se desarrollan muchas actividades que NO son de atención directa al cliente, como el uso de vestuarios y comedor de personal?", o: ["Zonas Externas", "Zonas Nobles", "Área de Habitaciones", "Zonas Comunes (o internas)"], a: 3, r: "Las Zonas Comunes o internas incluyen instalaciones utilizadas por el personal (vestuarios, comedor) y otras áreas de servicio (almacenes, oficinas de administración)." },
+            { q: "¿Cuál de las siguientes es considerada una Zona Común (o interna)?", o: ["Habitación de cliente", "Despacho Dirección", "Economato", "Hall de entrada"], a: 2, r: "El economato, almacenes, escaleras de servicios y vestuarios son ejemplos de Zonas Comunes." },
+            { q: "Dentro de la Lavandería-Lencería, ¿qué operaciones son propias de la sección de **Lavandería**?", o: ["Arreglos de costura", "Distribución y almacenamiento de ropa limpia", "Manipulación de la ropa sucia", "Inventario de mobiliario"], a: 2, r: "La Lavandería se encarga de la manipulación de la ropa sucia, el lavado, secado y planchado." },
+            { q: "¿Qué operaciones se realizan en la sección de **Lencería**?", o: ["Procesos de secado", "Manipulación de ropa limpia", "Procesos de lavado", "Arreglo de fontanería"], a: 1, r: "La Lencería se ocupa de la manipulación de ropa limpia, su distribución, almacenamiento y, en algunos casos, arreglos de costura." },
+            { q: "¿Por qué la Lavandería y la Lencería pueden estar más o menos separadas?", o: ["Por la época del año", "Por la dimensión del hotel y la especialización de los trabajos", "Por el tipo de cliente", "Por la hora del día"], a: 1, r: "La separación de dependencias depende de la dimensión del hotel y el grado de especialización." },
+            { q: "¿Cuál de los siguientes elementos forma parte de las **Zonas Externas**?", o: ["El office de camareras", "La lencería", "La fachada del hotel", "El vestuario de personal"], a: 2, r: "Las Zonas Externas están compuestas por la fachada, accesos, jardines externos, aparcamiento y toda la zona exterior." },
+            { q: "¿Cuál de estas dependencias NO se incluye en las Zonas Nobles según el resumen de áreas?", o: ["Bares", "Restaurantes", "Despacho Dirección", "Pasillos"], a: 3, r: "Los pasillos, junto con habitaciones, offices y ascensores de clientes, forman parte del Área de Habitaciones. El Despacho de Dirección forma parte de las Zonas Nobles." },
+            { q: "En el resumen de áreas, ¿dónde se ubican el Economato y los Vestuarios del personal?", o: ["Zonas Nobles", "Área de Habitaciones", "Zonas Externas", "Zonas Internas (Zonas Comunes)"], a: 3, r: "El Economato y los Vestuarios de personal están en las Zonas Internas o Comunes." },
+            { q: "Si una camarera de pisos necesita reponer su carrito de toallas limpias, ¿a qué área del housekeeping acude?", o: ["Lavandería", "Lencería (Almacenes de ropa)", "Zonas Comunes (Vestuarios)", "Área de Habitaciones (Offices)"], a: 1, r: "La Lencería se encarga de la manipulación, distribución y almacenamiento de la ropa limpia." },
+            { q: "Las escaleras de clientes y los ascensores de clientes se agrupan dentro del área de...", o: ["Zonas Comunes", "Zonas Nobles", "Área de Habitaciones", "Zonas Externas"], a: 2, r: "Forman parte del Área de Habitaciones." },
+            { q: "El Despacho de Dirección, según la tabla de áreas, se considera parte de las...", o: ["Zonas Nobles", "Zonas Comunes", "Área de Habitaciones", "Zonas Externas"], a: 0, r: "El Despacho de Dirección se incluye en la lista de dependencias dentro de las Zonas Nobles." },
+            { q: "Los Jardines y Aparcamientos del hotel se clasifican dentro de qué área del Departamento de Pisos?", o: ["Zonas Comunes", "Zonas Nobles", "Área de Habitaciones", "Zonas Externas"], a: 3, r: "Jardines y aparcamientos forman parte de las Zonas Externas." },
+            { q: "¿Qué zonas incluyen las Escaleras de servicio y los Montacargas?", o: ["Zonas Nobles", "Zonas Externas", "Zonas Internas (Zonas Comunes)", "Área de Habitaciones"], a: 2, r: "Son zonas utilizadas por el personal y se clasifican como Zonas Internas o Comunes." },
+            { q: "¿Qué se considera un hotel mediano en términos de habitaciones?", o: ["Menos de 50", "Entre 50 y 100", "Entre 100 y 200", "Más de 200"], a: 2, r: "Se consideran hoteles medianos aquellos que tienen entre 100 y 200 habitaciones." },
+            { q: "A partir de cuántas habitaciones se considera un hotel como 'grande'?", o: ["A partir de 50", "A partir de 100", "A partir de 200", "A partir de 500"], a: 2, r: "Se consideran hoteles grandes a partir de 200 habitaciones." },
+            { q: "En el caso de los hoteles de cliente familiar, ¿qué suele ser más importante que el destino a la hora de la decisión de compra?", o: ["El precio del billete de avión", "El producto (hotel)", "La proximidad a la playa", "Las excursiones disponibles"], a: 1, r: "Para el cliente familiar, el producto (las instalaciones y servicios del hotel) suele ser más importante que el destino." },
+            { q: "¿Cuál es una característica de la organización del Housekeeping para el cliente familiar respecto a las cunas y camas supletorias?", o: ["Se instalan solo si el cliente lo solicita tras el check-in", "El cliente debe encontrarlas instaladas a su llegada", "Se cobra un suplemento siempre", "Se dejan en el almacén para que el cliente las instale"], a: 1, r: "El cliente debe encontrarlas instaladas y en perfecto estado de conservación a su llegada." },
+            { q: "¿Qué tipo de preferencia de limpieza se da a las habitaciones de clientes familiares?", o: ["Se limpian las últimas del turno", "No tienen preferencia", "Se les da preferencia para respetar horarios de descanso de los niños", "Se limpian por orden de salida"], a: 2, r: "Se da preferencia de limpieza para poder respetar los horarios de descanso de los niños." },
+            { q: "¿Qué establece Cataluña, siendo pionera en Europa, para los destinos de turismo familiar?", o: ["La certificación 'Blue Flag'", "La marca certificada 'Destino de Turismo Familiar (DTF)'", "La marca 'Sol y Playa'", "El sello 'Q de Calidad'"], a: 1, r: "Cataluña es pionera en Europa al crear la marca certificada de destinos de turismo familiar (DTF)." },
+            { q: "¿Qué debe considerar el Housekeeping respecto a los minibares para el cliente familiar?", o: ["Eliminarlos", "Dejarlos abiertos siempre", "Posibilidad de poder cerrarlos con llave", "Llenarlos con juguetes"], a: 2, r: "Se debe ofrecer la posibilidad de cerrar los minibares con llave por seguridad." },
+            { q: "Para el cliente ejecutivo, ¿cuánto tiempo pasa generalmente en el hotel?", o: ["Suele pasar muchas horas", "Pasa muy pocas horas", "Permanece solo en las zonas comunes", "Pasa todo el día"], a: 1, r: "Este tipo de cliente, generalmente, pasa muy pocas horas en el hotel; sale temprano y vuelve tarde." },
+            { q: "¿Por qué el cliente ejecutivo es apreciado en el Departamento de Pisos?", o: ["Porque consume mucho en el minibar", "Porque rara vez emite queja", "Porque permite realizar las tareas sin priorizar habitaciones y elimina tiempos muertos", "Porque deja mucha propina"], a: 2, r: "Es apreciado porque facilita la organización, permitiendo realizar tareas sin priorizar y eliminando tiempos muertos." },
+            { q: "¿Qué puede hacer el Housekeeping en hoteles de cliente ejecutivo respecto a los turnos de camarera de mañana?", o: ["Retrasar la incorporación", "Reducir el personal", "Incorporar el turno temprano", "Asignarles solo tareas administrativas"], a: 2, r: "Los turnos de camarera de mañana se pueden incorporar temprano, ya que el cliente ejecutivo sale temprano." },
+            { q: "Ante un imprevisto, ¿con qué frecuencia recurre el cliente ejecutivo a la gobernanta?", o: ["Nunca", "Con poca frecuencia", "Con frecuencia", "Solo en casos de vida o muerte"], a: 2, r: "Es un gran conocedor del servicio y recurre a la gobernanta con frecuencia ante cualquier imprevisto." },
+            { q: "¿Qué caracteriza al cliente ejecutivo en cuanto a quejas?", o: ["Es muy exigente y emite muchas quejas", "Emite quejas si no es atendido", "Es un cliente práctico que rara vez emite queja si se siente atendido", "Se queja por sistema"], a: 2, r: "Es un cliente práctico que rara vez emite queja si se siente atendido." },
+            { q: "¿Qué tipo de cliente, generalmente, está muchas horas en el hotel (excepto en hoteles de ciudad o centros turísticos de cultura)?", o: ["Ejecutivo", "Familiar", "Vacacional", "Tripulaciones"], a: 2, r: "El cliente vacacional suele estar muchas horas en el hotel, especialmente en hoteles de zonas costeras." },
+            { q: "¿Qué dificultad para la limpieza genera el cliente vacacional?", o: ["Que viaja con mucho equipaje", "Que necesita muchas atenciones VIP", "Que no permite la entrada de las camareras", "Que pide comida en la habitación"], a: 0, r: "El cliente vacacional viaja con mucho equipaje, lo que dificulta la limpieza de polvo y suelo." },
+            { q: "¿Cómo son los horarios del cliente vacacional que afectan a la limpieza?", o: ["Muy regulares", "Siempre sale a las 10:00", "Horarios irregulares que obligan a hacer las habitaciones muy tarde", "Siempre sale muy temprano"], a: 2, r: "Sus horarios son irregulares, lo que puede obligar a realizar la limpieza de las habitaciones muy tarde." },
+            { q: "Dada la dificultad con los horarios del cliente vacacional, ¿qué medida se toma a menudo para la limpieza?", o: ["Reducir el personal", "Se dispone de un tiempo muy corto para limpiar y se asigna más personal con menos horas", "Se limpia solo a la salida del cliente", "Se usan máquinas robot"], a: 1, r: "Se dispone de un tiempo muy corto para limpiar, por lo que se requiere más personal con menos horas de trabajo." },
+            { q: "¿Por qué se requiere que el Housekeeping de hoteles vacacionales disponga de más útiles de limpieza y equipamiento?", o: ["Para aumentar el confort del cliente", "Para aumentar la productividad", "Para facilitar la independencia de las camareras de piso", "Por normativa legal"], a: 2, r: "Se requiere más equipamiento para facilitar la independencia de las camareras." },
+            { q: "El cliente de **Tripulaciones** es frecuente en hoteles de qué categoría?", o: ["Hoteles de 1 y 2 estrellas", "Hoteles de 3 estrellas", "Hoteles de 4 y 5 estrellas", "Hoteles de hostales"], a: 2, r: "Es un cliente frecuente en hoteles de 4 y 5 estrellas de ciudades." },
+            { q: "¿Cuál es la principal directriz para el Housekeeping con las habitaciones de tripulaciones?", o: ["Limpiar inmediatamente al salir", "Dejarles siempre un detalle de bienvenida", "Respetar escrupulosamente el cartel de “No molestar”", "Asegurarse de que desayunan"], a: 2, r: "Es fundamental respetar escrupulosamente el cartel de 'No molestar', ya que suelen estar durmiendo en horarios irregulares." },
+            { q: "¿Qué buscan las tripulaciones en sus habitaciones para poder dormir?", o: ["Mucha luz", "Mucha claridad", "Oscuridad y calma", "Un teléfono directo"], a: 2, r: "Buscan oscuridad y calma, por lo que los elementos para oscurecer la habitación (cortinas/persianas) deben estar perfectos." },
+            { q: "En el caso de tripulaciones habituales, ¿qué se recomienda en la asignación de habitaciones?", o: ["Asignación aleatoria", "Asignación de habitaciones cerca de los ascensores", "Asignación de las mismas habitaciones", "Asignación de habitaciones con minibar"], a: 2, r: "Se recomienda la asignación de las mismas habitaciones a tripulaciones habituales." },
+            { q: "Para el Housekeeping, el cliente de tripulación es un cliente...", o: ["Muy exigente", "Prácticamente invisible", "Que requiere muchos servicios urgentes", "Que genera muchas incidencias"], a: 1, r: "Para el housekeeping es un cliente prácticamente invisible, ya que pasan mucho tiempo en la habitación durmiendo." },
+            { q: "¿Qué segmento de mercado se está convirtiendo en la principal fuente de ingresos de agencias y aerolíneas en temporada baja?", o: ["Cliente ejecutivo", "Clientes de la tercera edad", "Viajeros solitarios", "Cliente deportista"], a: 1, r: "El segmento de la tercera edad está tomando mucha importancia y se convierte en la principal fuente de ingresos en temporada baja." },
+            { q: "¿Qué medida de seguridad en el baño es específica para el cliente de la tercera edad?", o: ["Bañeras de hidromasaje", "Eliminar la bañera", "Suelo y fondo de bañera antideslizantes y barras de sujeción", "Toallas especiales con calefacción"], a: 2, r: "Es necesario disponer de suelo de baño y fondo de bañera antideslizantes, además de barras de sujeción." },
+            { q: "¿Qué debe hacer la gobernanta cuando un cliente de la tercera edad pone el cartel de “No molestar”?", o: ["No entrar bajo ningún concepto", "Hacer seguimiento para asegurarse de que están bien", "Llamar a Recepción", "Avisar al Jefe de Mantenimiento"], a: 1, r: "La gobernanta debe hacer seguimiento para asegurarse de que el cliente se encuentra bien." },
+            { q: "Una peculiaridad en la limpieza de habitaciones de clientes de la tercera edad es que a veces...", o: ["Se tiene que limpiar la habitación con el cliente dentro", "El cliente limpia su propia habitación", "Solo se limpian las zonas comunes", "Se necesita un traductor"], a: 0, r: "A veces, se tiene que limpiar la habitación con el cliente dentro." },
+            { q: "¿Qué necesita la camarera de pisos para atender a los clientes de la tercera edad?", o: ["Un kit de primeros auxilios", "Estar preparada para atender las conversaciones y hacerlas compatibles con su trabajo", "Un uniforme especial", "Una radio para escuchar música"], a: 1, r: "La camarera debe estar preparada para atender las conversaciones de este tipo de clientes y hacerlas compatibles con su trabajo." },
+            { q: "¿Cómo se alojan, generalmente, los deportistas en el hotel (excepto directivos y técnicos)?", o: ["En habitaciones individuales", "De dos en dos", "En la suite presidencial", "En diferentes plantas"], a: 1, r: "Generalmente se alojan de dos en dos, excepto los directivos y técnicos." },
+            { q: "¿Qué sucede a menudo con el mobiliario de las habitaciones de los clientes deportistas?", o: ["Es muy cuidado", "Es ignorado", "Se concentra/reúne en una de las habitaciones (trasladándolo)", "Se le añade una cama extra"], a: 2, r: "En ocasiones, se concentran/reúnen en una de las habitaciones, trasladando mobiliario y otros útiles, aspecto que el Housekeeping debe considerar." },
+            { q: "¿Qué técnica de limpieza se utiliza para limpiar de forma eficaz las zonas de deportistas en tiempos reducidos?", o: ["Uso de robots", "Trabajar una sola camarera muy rápido", "Varias camareras trabajando en grupo en esa zona", "No limpiar"], a: 2, r: "Se dispone de varias camareras trabajando en grupo en esa zona, a veces con tiempos reducidos, para ser eficaces." },
+            { q: "¿Cuál es el nivel de exigencia en los Hoteles de Gran Lujo?", o: ["Bajo", "Medio", "Alto", "No tienen exigencia"], a: 2, r: "Tienen un nivel de exigencia muy alto." },
+            { q: "¿Cómo debe prepararse la habitación en un hotel de Gran Lujo, incluso si no es la primera noche del cliente?", o: ["Solo se recoge la cama", "Preparándola siempre como si entrasen nuevos clientes, con reposición completa", "Se deja igual que el día anterior", "Se pregunta al cliente"], a: 1, r: "El servicio es esmerado, preparando siempre la habitación como si entrasen nuevos clientes, con reposición completa." },
+            { q: "¿Qué se establece en el Housekeeping de un Gran Lujo para atender solicitudes de clientes y derivarlas?", o: ["Un buzón de sugerencias", "Una extensión de teléfono exclusiva", "El uso de mensajeros", "Solo la comunicación con Recepción"], a: 1, r: "Se utiliza una extensión de teléfono exclusiva para atender solicitudes y derivarlas al responsable de cada departamento." },
+            { q: "¿Qué tipo de detalles se ofrecen en un hotel de Gran Lujo?", o: ["Una dotación estándar", "Una dotación más amplia de detalles de bienvenida", "No se dejan detalles", "Solo flores frescas"], a: 1, r: "Se ofrece una dotación más amplia de detalles de bienvenida." },
+            { q: "¿Cómo se realiza la limpieza de la habitación en caso de personalidades como Jefes de Estado?", o: ["La realiza la camarera más experimentada", "Se realiza en presencia de personal de seguridad", "Se realiza a medianoche", "Se prohíbe la limpieza"], a: 1, r: "La limpieza se realiza en presencia de personal de seguridad, en coordinación con secretarios o asistentes personales." },
+            { q: "¿Qué tipo de servicio de lavandería se ofrece con frecuencia en hoteles de Gran Lujo?", o: ["Servicio lento y caro", "Servicio urgente y gratuito (a veces)", "Servicio limitado", "Solo para la lencería del hotel"], a: 1, r: "Se ofrece servicio urgente y gratuito (a veces) de lavandería." },
+            { q: "¿Qué característica debe tener el personal del Departamento de Pisos en Hoteles de Gran Lujo?", o: ["Debe ser de contratación temporal", "Debe ser cualificado, tener conocimientos de inglés (mínimo) y ser de mucha confianza", "No necesita experiencia", "Solo se necesita personal joven"], a: 1, r: "El personal debe ser cualificado, tener conocimientos de inglés (mínimo) y ser de mucha confianza." },
+            { q: "¿Qué es lo más destacable en la organización de la limpieza en hoteles donde se celebran **Convenciones**?", o: ["La cantidad de mobiliario", "La salida y vuelta a las habitaciones de todos los clientes a la vez", "Las peticiones de limpieza de zapatos", "El horario nocturno"], a: 1, r: "Lo más destacable es que la salida y vuelta a las habitaciones de todos los clientes ocurre a la misma hora (reuniones y descansos), lo que reduce el margen de tiempo para la limpieza." },
+            { q: "¿Qué tipo de peticiones son frecuentes en clientes de convenciones?", o: ["Peticiones de carácter administrativo", "Peticiones de carácter urgente", "Peticiones de cambio de habitación", "Peticiones de comida"], a: 1, r: "Los clientes son convocados a muchas actividades, por lo que sus peticiones (ej. planchado, lavandería) son de carácter urgente." },
+            { q: "¿Qué consideración especial debe tener la camarera con los objetos del cliente de convenciones?", o: ["Tirar el material de documentación", "Ordenar todo en el armario", "Importancia de no tirar nada", "Recoger solo lo personal"], a: 2, r: "Este cliente suele reunir gran cantidad de material y documentación, por lo que es de suma importancia no tirar nada." },
+            { q: "En hoteles con predominio de clientes de varias nacionalidades, ¿en qué se evidencian sus comportamientos?", o: ["En la recepción de clientes", "En las rutinas del Departamento de Pisos", "En el menú del restaurante", "En la facturación"], a: 1, r: "Sus comportamientos afectan a las rutinas del Departamento de Pisos." },
+            { q: "¿Qué puede requerir acentuar la limpieza en ciertos puntos de la habitación de clientes de varias nacionalidades?", o: ["El uso de zapatillas", "La interpretación de uso de instalaciones de la habitación", "El idioma", "El horario de limpieza"], a: 1, r: "Se debe a la interpretación del uso de las instalaciones de la habitación." },
+            { q: "¿Cuál es una costumbre de algunas nacionalidades que afecta al Housekeeping (especialmente sobre la almohada)?", o: ["Dejar un mensaje", "Dejar el cartel de 'No molestar'", "Dejar a la camarera propina cada día", "Dejar un pequeño regalo"], a: 2, r: "La costumbre de dejar propina sobre la almohada cada día durante la estancia es común en ciertas nacionalidades." },
+            { q: "Para el cliente de varias nacionalidades, ¿qué se recomienda al Housekeeping respecto a las almohadas?", o: ["Dejar solo una", "Disponer de un stock variado", "Eliminarlas", "Usar solo almohadas de plumas"], a: 1, r: "Se recomienda disponer de un stock variado de almohadas debido a la demanda." },
+            { q: "¿Qué tipo de producto de higiene personal es menos utilizado por algunas culturas, por lo que demandan más?", o: ["Gel de ducha", "Champú", "Más pastillas de jabón", "Crema hidratante"], a: 2, r: "Se demanda más pastillas de jabón porque el uso de gel no está extendido en todas las culturas." },
+            { q: "¿Qué debe hacer la gobernanta si un cliente de varias nacionalidades necesita cocinar en la habitación?", o: ["Permitirlo sin más", "Ser informada por seguridad e higiene", "Llamar al Director", "Prohibirlo totalmente"], a: 1, r: "La gobernanta debe ser informada por motivos de seguridad e higiene." },
+            { q: "¿Qué clientes suelen alojarse en hoteles especializados en grupos de clientes muy jóvenes?", o: ["Familias", "Estudiantes en viajes de fin de curso", "Clientes ejecutivos", "Tripulaciones"], a: 1, r: "Generalmente, se trata de estudiantes en viajes de fin de curso." },
+            { q: "¿Cuál es una dificultad para la limpieza en habitaciones de grupos muy jóvenes?", o: ["El exceso de orden", "Que suelen estar en las habitaciones hasta 4 personas", "Que no dejan propina", "El poco equipaje"], a: 1, r: "Dificultad para limpiar porque suelen estar en las habitaciones hasta 4 personas." },
+            { q: "¿Qué deben garantizar los elementos de la habitación para los clientes más jóvenes?", o: ["Que sean de diseño", "Que sean baratos", "Que tengan mucha solidez", "Que tengan muchos colores"], a: 2, r: "Las dependencias del hotel suelen ser una diversión para los más jóvenes, por lo que se requiere solidez en los elementos de la habitación." },
+            { q: "¿Quién da las instrucciones al hotel sobre la política de minibares en el caso de grupos muy jóvenes?", o: ["El Director", "Los propios jóvenes", "La Recepción", "Los responsables del grupo"], a: 2, r: "Los responsables del grupo dan instrucciones al hotel sobre la política de minibares." },
+            { q: "¿Qué tipo de hotel se caracteriza por una gestión familiar y por el cuidado del mínimo detalle?", o: ["Hoteles de convenciones", "Hoteles de Gran Lujo", "Hoteles pequeños con cliente habitual", "Hoteles de tripulaciones"], a: 2, r: "Los Hoteles pequeños con cliente habitual (con encanto) suelen tener una gestión familiar y cuidan el mínimo detalle." },
+            { q: "En hoteles pequeños con cliente habitual, ¿quién realiza la limpieza de habitaciones?", o: ["El cliente", "Solo la gobernanta", "Personal externo", "Personal rotativo del hotel"], a: 2, r: "La función de la gobernanta se reparte entre los miembros de la familia, mientras que la limpieza de habitaciones la realiza personal externo." },
+            { q: "¿Qué agrada al cliente habitual en un hotel pequeño?", o: ["Que le cambien de habitación", "Que le atienda siempre una persona nueva", "Ver a la misma persona atendiendo su habitación (personalización)", "Que le hagan un descuento"], a: 2, r: "Le resulta agradable ver a la misma persona atendiendo su habitación (personalización del servicio)." },
+            { q: "¿En qué se basan los Hoteles Ecológicos?", o: ["Solo en el diseño moderno", "En el respeto y el vínculo con el medioambiente", "En la reducción de personal", "En la comida vegetariana"], a: 1, r: "Se basan en el respeto y el vínculo con el medioambiente." },
+            { q: "¿Qué certificación de calidad buscan los hoteles ecológicos?", o: ["ISO 9.001", "ISO 14.001", "Q de Calidad Turística", "Bandera Azul"], a: 1, r: "Tienen objetivos muy concretos de acreditación y certificación de calidad, mencionando específicamente la ISO 14.001." },
+            { q: "¿Qué tipo de productos de limpieza se deben utilizar en un Hotel Ecológico?", o: ["Los más fuertes", "Los mínimos en cantidad y especiales (de bajo impacto)", "Los que huelan mejor", "Los más económicos"], a: 1, r: "Los productos deben ser los mínimos en cantidad y especiales (de bajo impacto)." },
+            { q: "¿Qué idea prevalece en el Housekeeping de un Hotel Ecológico?", o: ["La de desechar", "La de reuBlizar (no generar envases y reciclar)", "La de comprar a granel", "La de usar más lencería"], a: 1, r: "Prevalece la idea de reutilizar, no generar envases y reciclar todo lo posible." },
+            { q: "¿Qué tipo de recogida de basuras se realiza durante la limpieza de la habitación en un hotel ecológico?", o: ["Recogida normal", "Recogida selectiva (con contenedores específicos en el carrito)", "Recogida cada tres días", "Solo de papel"], a: 1, r: "Se realiza recogida selectiva de basuras, con contenedores específicos en el carrito de la camarera." },
+            { q: "¿Quién debe estar sensibilizado con el medioambiente en un hotel ecológico?", o: ["Solo la dirección", "Solo el personal de mantenimiento", "Los clientes y todo el personal", "Solo la camarera de pisos"], a: 2, r: "Los clientes están sensibilizados, y la política debe implicar a todo el personal." },
+            { q: "En un hotel familiar, además de cunas, ¿qué otro elemento se considera una necesidad para bebés en los cuartos de baño?", o: ["Espejos de aumento", "Tablas para cambio de pañales", "Bañera para adultos", "Secador de pelo"], a: 1, r: "Se requiere la disposición de tablas para cambio de pañales y bolsas de plástico para depositarlos." },
+            { q: "En el hotel ejecutivo, dada la facilidad de horarios de limpieza, el Housekeeping tiene mucho margen de tiempo para el servicio de limpieza.", o: ["Falso, solo tienen poco tiempo", "Falso, es más difícil", "Verdadero, tienen mucho margen de tiempo", "Solo en temporada baja"], a: 2, r: "Puesto que el cliente sale temprano, se dispone de mucho margen de tiempo para el servicio de limpieza." },
+            { q: "Una de las necesidades del cliente familiar en cuanto a la distribución de las habitaciones es la disposición de habitaciones...", o: ["Individuales", "Con balcón", "Conexas", "Comunicadas"], a: 3, r: "Se necesita la disposición de habitaciones comunicadas, además de la amplitud de las mismas." },
+            { q: "La organización del Housekeeping de un hotel de Gran Lujo se asemeja, por la necesidad de rapidez en la limpieza, a la de los hoteles:", o: ["De tripulaciones", "Ejecutivos", "Vacacionales", "Ecológicos"], a: 2, r: "Se organiza de forma similar a los hoteles vacacionales, para que todas las habitaciones estén limpias en el menor tiempo posible." },
+            { q: "En hoteles de Convenciones, ¿por qué son tan urgentes las peticiones de los clientes?", o: ["Porque son clientes VIP", "Porque son convocados a muchas actividades", "Porque tienen poco dinero", "Porque no les gusta el hotel"], a: 1, r: "Son clientes convocados a muchas actividades, por lo que sus peticiones son de carácter urgente." },
+            { q: "¿Qué tipo de cliente exige la reposición completa de la dotación de la habitación, preparándola siempre como si fuera la primera entrada?", o: ["Cliente de Convenciones", "Cliente de la Tercera Edad", "Cliente Ejecutivo", "Hoteles de Gran Lujo"], a: 3, r: "El servicio esmerado y la reposición completa de la dotación es propia de los Hoteles de Gran Lujo." },
+            { q: "¿Cuál de los siguientes aspectos es una medida de seguridad en el baño para la tercera edad?", o: ["Duchas con chorros a presión", "Eliminar los grifos", "Sillas especiales para poner dentro de la bañera o ducha", "Espejos de cuerpo entero"], a: 2, r: "Se ofrecen sillas especiales para poner dentro de la bañera o ducha." },
+            { q: "¿Qué tipo de artículos de bienvenida específicos se ofrecen en hoteles de categoría superior para clientes familiares?", o: ["Chocolates caros", "Artículos tecnológicos", "Un peluche o similar", "Flores frescas"], a: 2, r: "Se ofrece un peluche o un artículo similar." },
+            { q: "¿Cuál es la principal dificultad del Housekeeping en hoteles vacacionales en cuanto a horarios?", o: ["Que el cliente sale muy pronto", "Que el cliente hace la habitación", "Horarios irregulares que obligan a hacer las habitaciones muy tarde", "Que el cliente no sale de la habitación"], a: 2, r: "Horarios irregulares que obligan a hacer las habitaciones muy tarde." },
+            { q: "¿Qué debe conocer la gobernanta en el caso del cliente deportista para una limpieza eficaz?", o: ["El nombre del entrenador", "Sus horarios de comidas, reuniones y entrenos", "El coste de su alojamiento", "El tipo de deporte que practican"], a: 1, r: "Se deben conocer bien sus horarios de comidas, reuniones, entrenos, etc." },
+            { q: "¿Qué tipo de cliente es el que viaja con mucho equipaje, dificultando la limpieza de polvo y suelo?", o: ["Ejecutivo", "Familiar", "Vacacional", "Gran Lujo"], a: 2, r: "Cliente vacacional." },
+            { q: "En hoteles de Gran Lujo, ¿con qué se adornan todas las habitaciones?", o: ["Con esculturas", "Con flores frescas", "Con frutas artificiales", "Con alfombras de diseño"], a: 1, r: "Se adornan todas las habitaciones con flores frescas." },
+            { q: "¿Cuál es la actitud del cliente ejecutivo en cuanto a quejas si se siente atendido?", o: ["Emite quejas frecuentes", "Emite quejas si no le dan regalos", "Rara vez emite queja", "Se queja con la Recepción"], a: 2, r: "Es un cliente práctico que rara vez emite queja si se siente atendido." },
+            { q: "¿Qué se debe prever en el Housekeeping para las habitaciones de tripulaciones?", o: ["La limpieza con el cliente dentro", "La cantidad de camareras para preparar las habitaciones en muy poco tiempo", "Más toallas por persona", "Más detalles de bienvenida"], a: 1, r: "La gobernanta debe prever la cantidad de camareras necesarias para preparar las habitaciones en muy poco tiempo." },
+            { q: "¿Qué medida de seguridad se recomienda para los hoteles familiares en las habitaciones?", o: ["Barandillas apropiadas, sin huecos y con la altura reglamentaria", "Puertas de seguridad", "Cámaras de vigilancia", "Alarmas de incendios"], a: 0, r: "Es necesario instalar barandillas apropiadas, sin huecos y con la altura reglamentaria." },
+            { q: "¿Qué debe hacer la camarera de pisos si se encuentra a un cliente de la tercera edad dentro de la habitación?", o: ["Llamar al médico", "Salir rápidamente", "Atender sus conversaciones y hacerlas compatibles con su trabajo", "Pedirle que salga"], a: 2, r: "Debe estar preparada para atender las conversaciones de este tipo de clientes y hacerlas compatibles con su trabajo." },
+            { q: "¿Cuál es un aspecto importante para el Housekeeping de un hotel de Gran Lujo en relación con el mobiliario?", o: ["Que el cliente lo cambie de sitio", "Distribuir el mobiliario de forma diferente para cubrir necesidades de visitas o prensa", "Eliminar el mobiliario", "Que el mobiliario sea antiguo"], a: 1, r: "Con frecuencia, se debe distribuir el mobiliario de manera diferente para cubrir necesidades de atención de visitas, prensa, etc." },
+            { q: "¿Cuál de los siguientes NO es un tipo de establecimiento mencionado en la Unidad 1?", o: ["Cliente Familiar", "Cliente Empresarial", "Convenciones", "Hoteles Temáticos"], a: 3, r: "Hoteles Temáticos no se menciona en los Tipos de Establecimientos de la Unidad 1." },
+            { q: "En el caso de Hoteles Ecológicos, ¿qué tarea debe estar muy procedimentada?", o: ["El control de precios", "El cobro de servicios", "Las tareas del departamento de la gobernanta", "La organización de excursiones"], a: 2, r: "Las tareas deben estar muy procedimentadas, especialmente en el departamento de la gobernanta." },
+            { q: "¿Qué práctica se establece en hoteles ecológicos para el personal del departamento?", o: ["Uso ilimitado de recursos", "Buenas prácticas para el personal (apertura de grifos, encendido de luces...)", "Uso de productos químicos", "No tener horario"], a: 1, r: "Se establecen buenas prácticas para el personal (apertura de grifos, encendido de luces, etc.)." },
+            { q: "¿Por qué la preferencia para la limpieza de habitaciones es difícil de establecer en Hoteles de Gran Lujo?", o: ["Por la falta de personal", "Por la acumulación de Vips y suites ocupadas", "Por el alto nivel de exigencia", "Por los diferentes idiomas"], a: 1, r: "Es difícil de establecer por la acumulación de Vips y suites ocupadas." },
+            { q: "En hoteles de Convenciones, ¿qué es de carácter urgente y se requiere atender a la vez en muchas habitaciones?", o: ["Servicios de desayuno", "Servicios de planchado de ropa y lavandería", "Peticiones de cambio de sábanas", "Peticiones de despertador"], a: 1, r: "Se deben atender, a la vez, peticiones y requerimientos de todas las habitaciones durante las mismas horas, como servicios de planchado de ropa y lavandería." },
+            { q: "¿Qué tipo de organización se requiere para los Hoteles Deportistas en la zona de alojamiento de los equipos?", o: ["Un solo trabajador a tiempo completo", "Trabajar en solitario", "Varias camareras trabajando en grupo con tiempos reducidos", "Limpieza solo en días de partido"], a: 2, r: "Varias camareras trabajando en grupo en esa zona, a veces con tiempos reducidos." },
+            { q: "En el caso de clientes de la tercera edad, ¿qué dotación complementaria se recomienda en la habitación?", o: ["Una silla de ruedas", "Un teléfono móvil", "Almohadas complementarias y diferentes a las instaladas", "Un televisor más grande"], a: 2, r: "Disponer de almohadas complementarias y diferentes a las instaladas." },
+            { q: "¿Qué aspecto del cliente familiar es fundamental para el Housekeeping para evitar puntos de riesgo?", o: ["El control de juguetes", "La eliminación de puntos de riesgo (enchufes, conexiones...)", "La decoración de la habitación", "El uso de alfombras"], a: 1, r: "Eliminación de puntos de riesgo (enchufes, conexiones...)." },
+            { q: "El cliente que 'pasa muy pocas horas en el hotel' y 'permite realizar las tareas sin priorizar' es el:", o: ["Vacacional", "Gran Lujo", "Ejecutivo", "Familiar"], a: 2, r: "Cliente ejecutivo." },
+            { q: "¿Cuál de los siguientes es un riesgo en la habitación para el cliente de la tercera edad?", o: ["Suelo de baño no antideslizante", "Luz muy brillante", "Mobiliario demasiado moderno", "Teléfono muy pequeño"], a: 0, r: "Suelo de baño y fondo de bañera antideslizantes son una necesidad, por lo que su ausencia es un riesgo." },
+            { q: "¿Qué tipo de cliente se caracteriza por tener 'horarios irregulares' que obligan a hacer las habitaciones muy tarde?", o: ["Tripulaciones", "Convenciones", "Ejecutivo", "Vacacional"], a: 3, r: "Cliente vacacional." },
+            { q: "En hoteles con predominio de clientes de varias nacionalidades, ¿qué se puede demandar en relación con la cama?", o: ["Eliminar el colchón", "Montaje de la cama según la procedencia del cliente", "Uso de sacos de dormir", "Cama con dosel"], a: 1, r: "Montaje de la cama según la procedencia del cliente." },
+            { q: "Para el Housekeeping de clientes deportivos, es importante disponer de la información de:", o: ["Su historial médico", "Quién ocupa cada habitación, su función y categoría dentro del club", "Su plan de entrenamientos", "Sus redes sociales"], a: 1, r: "Es importante disponer de la información de quién ocupa cada habitación y su función y categoría dentro del club." },
+            { q: "El cliente que requiere que la camarera de pisos esté preparada para 'atender las conversaciones' y hacerlas compatibles con su trabajo es el:", o: ["Joven", "Ejecutivo", "Tercera Edad", "Deportista"], a: 2, r: "Cliente de la tercera edad." },
+            { q: "¿Qué característica del cliente es más importante para definir el modelo de organización departamental de un establecimiento?", o: ["Su solvencia económica", "Su nacionalidad", "Su tipología (motivo y características de la estancia)", "Su peso"], a: 2, r: "Es necesario recurrir a la tipología de cliente." },
+            { q: "¿Qué se debe garantizar en las habitaciones de tripulaciones respecto a la luz?", o: ["Máxima luminosidad", "Que los elementos para oscurecer estén en perfecto estado", "Luz de neón", "Luz natural"], a: 1, r: "Los elementos para oscurecer las habitaciones deben estar en perfecto estado para garantizar la oscuridad." },
+            { q: "¿Cuál de los siguientes es un aspecto específico de la organización en Hoteles Ecológicos?", o: ["Uso de lencería de plástico", "Carrito de la camarera con contenedores específicos para recogida selectiva", "No usar agua para limpiar", "Usar solo productos de marca"], a: 1, r: "Carrito de la camarera con contenedores específicos para recogida selectiva de basuras." },
+            { q: "¿Qué se puede trasladar de mobiliario en las habitaciones de un Hotel de Gran Lujo si se requiere atender visitas o prensa?", o: ["Mesas y sillas", "Solo la cama", "Solo los cuadros", "Solo las cortinas"], a: 0, r: "Distribuir mobiliario de manera diferente para cubrir necesidades de atención de visitas, prensa, etc." },
+            { q: "¿Cuál es la principal diferencia entre el **Hotel de Gran Lujo** y otros tipos en cuanto a la preparación de la habitación?", o: ["El tiempo que se tarda", "La preparación siempre como si entrasen nuevos clientes con reposición completa", "El uso de flores", "El color de las sábanas"], a: 1, r: "Preparar la habitación como si entrasen nuevos clientes, con reposición completa." },
+            { q: "¿Qué criterio hace que el organigrama de puestos de trabajo sea **más complejo** y las funciones más delimitadas?", o: ["El tipo de cliente", "El tamaño del establecimiento (Hoteles grandes)", "La época del año", "El presupuesto de marketing"], a: 1, r: "En hoteles grandes, el organigrama es más complejo y cada función está muy bien delimitada." },
+            { q: "¿Qué concepto se aplica en hoteles **pequeños** para rentabilizar cada puesto de trabajo?", o: ["Especialización", "Outsourcing", "Polivalencia", "Liderazgo"], a: 2, r: "En hoteles pequeños se aplica la polivalencia." },
+            { q: "¿Quién está implicado en la descripción de los puestos de trabajo y determina la misión y funciones de cada uno?", o: ["El Director de F&B", "El Jefe de Compras", "Cada jefe de departamento (la gobernanta en este caso)", "El Director Comercial"], a: 2, r: "Cada jefe de departamento (la gobernanta en este caso) está implicado en esta tarea." },
+            { q: "¿Qué tipo de organización clásica aplicaba la Gobernanta la función de mando de forma directa sobre cada componente?", o: ["Organización Matricial", "Organización Funcional", "Organización Lineal", "Organización por Proyectos"], a: 2, r: "Tradicionalmente, se organizaba con una estructura clásica lineal, donde la Gobernanta ejercía el mando directo." },
+            { q: "¿Para qué tipo de empresas es un modelo de aplicación la Organización Lineal?", o: ["Empresas grandes y complejas", "Empresas de pequeño tamaño con complejidad de funciones baja", "Empresas multinacionales", "Empresas de trabajo temporal"], a: 1, r: "Es un modelo aplicable a empresas de pequeño tamaño, donde la complejidad de las funciones es baja y el mando se centraliza." },
+            { q: "¿Qué puesto dentro del Organigrama de puestos operacionales depende directamente del Director de Alojamiento?", o: ["Jefe de Cocina", "Gobernanta", "Jefe de Compras", "Recepcionista"], a: 1, r: "Según el organigrama de puestos operacionales, la Gobernanta y el Jefe de Recepción dependen del Director de Alojamiento." },
+            { q: "El modelo Taylorista (o funcional) ¿con qué termina como sistemática de producción?", o: ["Con la rotación del personal", "Con la especialización", "Con el control de los tiempos de trabajo", "Con la polivalencia"], a: 2, r: "El modelo taylorista (o funcional) supera al lineal y termina con el control de los tiempos de trabajo como sistemática de producción." },
+            { q: "¿Qué puesto operacional interactúa con la Gobernanta en la adquisición de recursos materiales según el organigrama?", o: ["Maître", "Jefe de Compras", "Ayudante de Recepción", "Jefe de Cocina"], a: 1, r: "El Jefe de Compras es el puesto operacional que colabora en la adquisición de los suministros y materiales que gestiona el Departamento de Pisos." },
+            { q: "En el modelo de Organización Lineal, ¿cuál de los siguientes puestos está al mismo nivel jerárquico que la Camarera?", o: ["Gobernanta", "Lavandera", "Jefe de Mantenimiento", "Ayudante de Recepción"], a: 1, r: "En la estructura lineal, Camarera, Limpiadora, Lavandera, Lencera y Mozo se encuentran al mismo nivel, dependiendo directamente de la Gobernanta." },
+            { q: "¿Qué debe conocer y aceptar el personal en el momento de incorporarse al Departamento de Pisos?", o: ["Solo el salario", "Las actividades y funciones de su puesto", "El horario y la dirección del hotel", "El nombre de todos los jefes"], a: 1, r: "Las actividades de cada componente deben ser definidas de antemano, y la persona que las desempeñe debe conocerlas y aceptarlas." },
+            { q: "¿Qué ha supuesto la evolución del sector hotelero en la estructura de organización y gestión de recursos humanos?", o: ["La eliminación de puestos", "La aplicación de nuevos enfoques", "La vuelta al modelo lineal", "La reducción de salarios"], a: 1, r: "La aplicación de nuevos enfoques en cuanto a la estructura de la organización y gestión de recursos humanos." },
+            { q: "¿Cuál es la figura de mando en la Organización Lineal del Departamento de Pisos?", o: ["El Director General", "El Jefe de Recepción", "El Gobernanta/e", "El Mozo"], a: 2, r: "El/la Gobernanta/e ejercía la función de mando de forma directa." },
+            { q: "¿Qué departamento incluye la Gobernanta en la departamentalización del Área de Alojamiento?", o: ["Finanzas", "Pisos", "F&B", "Marketing"], a: 1, r: "La Gobernanta es la responsable del departamento de Pisos, que a su vez se incluye en el Área de Alojamiento." },
+            { q: "En hoteles grandes, ¿qué pasa con cada empleado?", o: ["Se dedica a tareas polivalentes", "Conoce sus tareas y se dedica exclusivamente a ellas", "Trabaja solo a tiempo parcial", "Depende de la Recepción"], a: 1, r: "En hoteles grandes, cada empleado conoce sus tareas y se dedica exclusivamente a ellas, dada la complejidad y delimitación de funciones." },
+            { q: "¿Qué tipo de Organigrama está compuesto por roles como Director Financiero, Revenue Manager y Director Comercial?", o: ["Puestos Operacionales", "Organización Lineal", "Puestos Corporativos", "Departamentalización"], a: 2, r: "El ejemplo provisto es un Organigrama de puestos corporativos." },
+            { q: "¿Cuál de las siguientes dependencias pertenece a la sección de Lencería?", o: ["Lavandería", "Almacenes de ropa limpia", "Montacargas", "Vestuarios"], a: 1, r: "La Lencería se encarga de la manipulación, distribución y almacenamiento de la ropa limpia, por lo que los almacenes de ropa limpia le corresponden." },
+            { q: "El objetivo de la Dotación se centra en la detección de carencia de elementos que hagan la estancia más confortable, relacionados con:", o: ["Mobiliario y limpieza de la zona", "Decoración y montaje", "Servicios de recepción", "Sistemas informáticos"], a: 1, r: "La Dotación consiste en detectar la falta o carencia de elementos (decoración y montaje) que hacen más confortable la estancia del cliente." },
+            { q: "En los Hoteles de Gran Lujo, el servicio de limpieza de zapatos:", o: ["Está prohibido", "Se realiza solo si el cliente lo solicita", "Es obligatorio al menos una vez al día", "Lo realiza el personal de seguridad"], a: 1, r: "Se limpian los zapatos a solicitud del cliente." },
+            { q: "¿Qué se requiere para la camarera de pisos de un hotel vacacional para facilitar su independencia?", o: ["Más tiempo de descanso", "Más útiles de limpieza y equipamiento", "Un traductor de idiomas", "Un sistema de reservas online"], a: 1, r: "Requiere más útiles de limpieza y equipamiento para facilitar la independencia de las camareras de piso." },
+            { q: "¿En qué tipo de hotel el cliente suele ser muy ordenado y suele reunir gran cantidad de material y documentación en la habitación, con la consigna de 'no tirar nada'?", o: ["Hoteles con cliente familiar", "Hoteles donde se celebran convenciones", "Hoteles ecológicos", "Hoteles pequeños con cliente habitual"], a: 1, r: "El cliente de convenciones suele reunir gran cantidad de material y documentación, siendo importante no tirar nada." },
+            { q: "En Hoteles Ecológicos, ¿qué hacen los clientes que colaboran con las buenas prácticas?", o: ["Piden toallas nuevas cada día", "Dejan las luces encendidas", "Están muy sensibilizados con el medioambiente", "No hacen uso del minibar"], a: 2, r: "Los clientes de este tipo de hotel están muy sensibilizados con el medioambiente y colaboran en las buenas prácticas implantadas." },
+            { q: "¿Cuál de los siguientes es un objetivo del Departamento de Pisos relacionado con revisiones continuas y reparaciones necesarias?", o: ["Atención al Cliente", "Limpieza", "Dotación", "Mantenimiento"], a: 3, r: "El Mantenimiento busca garantizar el perfecto estado de conservación y funcionamiento mediante revisiones continuas y reparaciones." },
+            { q: "¿Por qué se considera al Departamento de Pisos esencial para el servicio al cliente?", o: ["Porque genera más ingresos que Recepción", "Porque sus actividades se desarrollan en casi la totalidad de las instalaciones del hotel", "Porque es el departamento con más jefes", "Porque gestiona solo el mobiliario"], a: 1, r: "Es considerado esencial para el servicio al cliente, entre otras cosas, porque sus actividades se desarrollan en casi la totalidad de las instalaciones del hotel." },
+            { q: "¿Cuál es el principal punto de enfoque de la Calidad en el Departamento de Pisos?", o: ["La rentabilidad económica", "La fidelización del cliente (superación de expectativas)", "La reducción de la jornada laboral", "La supervisión del personal"], a: 1, r: "Se basa en la plena satisfacción del cliente y su fidelización (respuesta a las necesidades y superación de expectativas)." },
+            { q: "¿Cuál de las siguientes NO es una dependencia incluida en las Zonas Comunes (o internas)?", o: ["Economato", "Almacenes", "Salones de Banquetes", "Vestuarios"], a: 2, r: "Los Salones de Banquetes se incluyen en las Zonas Nobles, mientras que los Vestuarios, Almacenes y Economato son Zonas Comunes." },
+            { q: "¿Cuál de estas opciones NO se aplica en un hotel de cliente familiar?", o: ["Amplitud de habitaciones", "Posibilidad de cerrar minibares con llave", "Disposición de tablas para cambio de pañales", "Eliminación total de la lencería"], a: 3, r: "La eliminación total de la lencería no es una práctica hotelera." },
+            { q: "En los Hoteles con clientes de la tercera edad, ¿qué debe tener en cuenta la camarera para atender al cliente?", o: ["Debe hablar un idioma distinto", "Debe estar preparada para hacer las conversaciones compatibles con su trabajo", "Debe ser siempre joven", "Debe cobrar un extra por conversar"], a: 1, r: "La camarera debe estar preparada para atender las conversaciones de este tipo de clientes y hacerlas compatibles con su trabajo." },
+            { q: "El departamento de la gobernanta es un punto de unión y referencia en los establecimientos hoteleros debido a sus actividades:", o: ["Solo de soporte", "De producción y de soporte", "Solo de venta", "De mantenimiento y seguridad"], a: 1, r: "El departamento realiza actividades de producción (habitaciones limpias) y de soporte (posibilitando operaciones de otros departamentos)." },
+            { q: "La asignación de las mismas habitaciones a tripulaciones habituales es una práctica de:", o: ["Hoteles con cliente vacacional", "Hoteles con clientes muy jóvenes", "Establecimientos que trabajan con tripulaciones", "Hoteles de Gran Lujo"], a: 2, r: "Es una recomendación específica para los establecimientos que trabajan con tripulaciones habituales." },
+            { q: "La limpieza de la habitación con el cliente dentro es una eventualidad que se presenta con el cliente:", o: ["Deportista", "Tercera Edad", "Ejecutivo", "Familiar"], a: 1, r: "A veces, se tiene que limpiar la habitación con el cliente de la tercera edad dentro." },
+            { q: "Cuál es la principal razón por la que el Housekeeping de un hotel de Convenciones tiene poco margen de tiempo para la limpieza?", o: ["La gran cantidad de equipaje", "La salida y vuelta a las habitaciones de todos los clientes a la vez", "La falta de útiles de limpieza", "La inexperiencia del personal"], a: 1, r: "La salida y vuelta a las habitaciones de todos los clientes a la vez (por reuniones y descansos simultáneos) reduce el tiempo de limpieza." },
+            { q: "La figura de la Gobernanta/e está contemplada en la estructura tradicional de organización:", o: ["Solo en hoteles pequeños", "Lineal", "Matricial", "Por proyectos"], a: 1, r: "El concepto de pisos se organizaba tradicionalmente de acuerdo con una estructura clásica lineal, donde la Gobernanta/e ejercía la función de mando." },
+            { q: "En el organigrama de puestos operacionales, ¿quién depende directamente del Director de Alojamiento?", o: ["Director de F&B y Gobernanta", "Jefe de Recepción y Gobernanta", "Director Comercial y Jefe de Cocina", "Jefe de Mantenimiento y Recepcionistas"], a: 1, r: "El Jefe de Recepción y la Gobernanta dependen directamente del Director de Alojamiento." }
+        ];
+
+        let selectedQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answeredCount = 0;
+        let isBlockChecked = false; // Bandera para saber si el bloque actual fue revisado
+        const questionCount = 10; // Número fijo de preguntas en el test
+
+        function startTest() {
+            // Asegura que hay suficientes preguntas
+            if (allQuestions.length < questionCount) {
+                alert("No hay suficientes preguntas disponibles para el test de 10 preguntas.");
+                return;
+            }
+
+            // Selecciona 10 preguntas aleatorias sin repetición
+            const indices = Array.from({ length: allQuestions.length }, (_, i) => i);
+            indices.sort(() => Math.random() - 0.5);
+            selectedQuestions = indices.slice(0, questionCount).map(index => ({
+                ...allQuestions[index],
+                userAnswer: null, // Índice de la respuesta del usuario (0, 1, 2, 3)
+                isCorrect: null, // Booleano para el resultado
+                id: index // Mantener el ID original de la pregunta para trazabilidad
+            }));
+
+            score = 0;
+            answeredCount = 0;
+            isBlockChecked = false;
+            document.getElementById('check-button').disabled = false;
+            document.getElementById('check-button').textContent = 'Comprobar Bloque';
+            document.getElementById('results-container').classList.add('hidden');
+            document.getElementById('question-status-container').innerHTML = ''; // Limpiar estado
+            renderQuiz();
+        }
+
+        function renderQuiz() {
+            const quizContainer = document.getElementById('quiz-container');
+            let html = '';
+
+            selectedQuestions.forEach((q, index) => {
+                // Generar un ID único para el grupo de radio de cada pregunta
+                const questionId = `q${index}`;
+
+                // Determinar clases de la tarjeta según si fue revisada y si es correcta
+                let cardClass = 'question-card bg-white p-6 rounded-xl mb-6 border border-gray-200 animate-pop';
+                if (isBlockChecked) {
+                    if (q.isCorrect === true) {
+                        cardClass = 'question-card correct-answer-card p-6 rounded-xl mb-6 animate-pop';
+                    } else if (q.isCorrect === false) {
+                        cardClass = 'question-card incorrect-answer-card p-6 rounded-xl mb-6 animate-pop';
+                    }
+                }
+                
+                html += `<div id="${questionId}-card" class="${cardClass}">`;
+                html += `<p class="text-xl font-semibold text-gray-800 mb-4">Pregunta ${index + 1}: ${q.q}</p>`;
+
+                q.o.forEach((option, optionIndex) => {
+                    const optionInputId = `${questionId}-option${optionIndex}`;
+                    const isChecked = q.userAnswer === optionIndex;
+                    
+                    // Clases para el label de la opción
+                    let labelClass = 'option-label flex items-center p-4 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-gray-100 mb-2';
+                    if (isBlockChecked) {
+                        // Modo Revisión/Resultado
+                        if (optionIndex === q.a) {
+                             // Si es la respuesta correcta
+                            labelClass = 'option-label checked-mode flex items-center p-4 rounded-lg transition duration-200 ease-in-out mb-2 bg-green-200 border border-green-500';
+                        } else if (isChecked && q.isCorrect === false) {
+                            // Si es la respuesta seleccionada por el usuario E INCORRECTA
+                             labelClass = 'option-label checked-mode flex items-center p-4 rounded-lg transition duration-200 ease-in-out mb-2 bg-red-200 border border-red-500';
+                        }
+                    } else if (isChecked) {
+                         // Modo Práctica (antes de comprobar) - Se aplica el estilo de seleccionado
+                         labelClass = 'option-label flex items-center p-4 rounded-lg cursor-pointer transition duration-200 ease-in-out mb-2 bg-gray-300';
+                    }
+
+                    html += `<label for="${optionInputId}" class="${labelClass}">`;
+                    html += `<input type="radio" id="${optionInputId}" name="${questionId}" value="${optionIndex}" class="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500 mr-3" ${isChecked ? 'checked' : ''} ${isBlockChecked ? 'disabled' : ''} onchange="selectAnswer(${index}, ${optionIndex})">`;
+                    html += `<span class="text-gray-700">${option}</span>`;
+                    html += `</label>`;
+                });
+                
+                // Mostrar Racional y feedback en modo revisión
+                if (isBlockChecked) {
+                    html += `<div class="mt-4 p-4 rationale-box rounded-lg">`;
+                    if (q.isCorrect) {
+                        html += `<p class="font-bold correct-feedback">¡Respuesta Correcta! 🎉</p>`;
+                    } else {
+                        html += `<p class="font-bold text-red-600">Respuesta Incorrecta. La opción correcta está marcada en verde.</p>`;
+                    }
+                    html += `<p class="mt-2 text-sm">${q.r}</p>`;
+                    html += `</div>`;
+                }
+
+                html += `</div>`;
+            });
+
+            quizContainer.innerHTML = html;
+            renderStatusDots();
+        }
+
+        function renderStatusDots() {
+            const statusContainer = document.getElementById('question-status-container');
+            let dotsHtml = '';
+
+            selectedQuestions.forEach((q, index) => {
+                let colorClass = 'bg-gray-400'; // No respondida
+                if (q.userAnswer !== null) {
+                    colorClass = 'bg-yellow-500'; // Respondida pero no revisada
+                    if (isBlockChecked) {
+                        if (q.isCorrect === true) {
+                            colorClass = 'bg-green-500'; // Correcta
+                        } else if (q.isCorrect === false) {
+                            colorClass = 'bg-red-500'; // Incorrecta
+                        }
+                    }
+                }
+
+                dotsHtml += `<div class="w-4 h-4 rounded-full ${colorClass} mx-1 shadow-md" title="Pregunta ${index + 1}"></div>`;
+            });
+
+            statusContainer.innerHTML = dotsHtml;
+        }
+
+        // FUNCIÓN CORREGIDA
+        function selectAnswer(questionIndex, optionIndex) {
+            if (isBlockChecked) return; // No permitir cambios si ya se revisó
+
+            const question = selectedQuestions[questionIndex];
+            
+            // **Lógica corregida:** Un radio button siempre registra la nueva selección. 
+            // Esto asegura que la respuesta se registre de forma estándar.
+            question.userAnswer = optionIndex;
+            
+
+            // Forzar la actualización del conteo de respuestas
+            answeredCount = selectedQuestions.filter(q => q.userAnswer !== null).length;
+            
+            // Re-renderizar para aplicar el estilo de 'seleccionado' (fondo gris)
+            renderQuiz(); 
+        }
+
+        function checkBlock() {
+            if (isBlockChecked) return; // Evitar doble comprobación
+
+            score = 0;
+            let allAnswered = true;
+            
+            selectedQuestions.forEach(q => {
+                if (q.userAnswer === null) {
+                    allAnswered = false;
+                }
+                
+                if (q.userAnswer === q.a) {
+                    q.isCorrect = true;
+                    score++;
+                } else {
+                    q.isCorrect = false;
+                }
+            });
+
+            if (!allAnswered) {
+                 // Advertencia si no se respondió a todo
+            }
+
+            isBlockChecked = true;
+            document.getElementById('check-button').disabled = true;
+            document.getElementById('check-button').textContent = 'Bloque Comprobado';
+            
+            displayResults();
+            renderQuiz(); // Redibujar para mostrar colores y explicaciones
+        }
+
+        function displayResults() {
+            const resultsContainer = document.getElementById('results-container');
+            const scoreDisplay = document.getElementById('score-display');
+            
+            resultsContainer.classList.remove('hidden');
+            scoreDisplay.innerHTML = `<h2 class="text-3xl font-bold mb-2">Resultados del Bloque:</h2>
+                                      <p class="text-2xl font-semibold text-gray-800">Has obtenido <span class="text-blue-600">${score}</span> de ${questionCount} respuestas correctas.</p>`;
+        }
+
+        // Asignación de eventos al cargar el DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('check-button').addEventListener('click', checkBlock);
+            document.getElementById('restart-button').addEventListener('click', startTest);
+            startTest(); // Iniciar el test automáticamente al cargar
+        });
+    </script>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8 p-6 bg-white rounded-xl shadow-lg border-b-4 border-blue-500">
+            <h1 class="text-4xl font-extrabold text-gray-800 mb-2">Test de Organización del Departamento de Pisos</h1>
+            <p class="text-lg text-gray-600">Test aleatorio de 10 preguntas extraídas del documento sobre la **Organización del Departamento de Pisos**.</p>
+            <p class="text-md text-blue-500 font-medium mt-2">¡Ideal para repasar! ✍️</p>
+            
+            <div id="question-status-container" class="flex justify-center mt-4 flex-wrap gap-1 border-t pt-4">
+                </div>
+        </header>
+
+        <div id="results-container" class="hidden text-center p-6 bg-yellow-100 rounded-xl shadow-inner border border-yellow-400 mb-8">
+            <div id="score-display">
+                </div>
+        </div>
+
+        <div id="quiz-container">
+            </div>
+
+        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-10">
+            <button id="check-button" class="px-8 py-4 bg-green-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-green-700 transition duration-300 transform hover:scale-105">
+                Comprobar Bloque
+            </button>
+            <button id="restart-button" class="px-8 py-4 bg-red-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-red-700 transition duration-300 transform hover:scale-105">
+                Reiniciar Test
+            </button>
+        </div>
+
+    </div>
+
+</body>
+</html>

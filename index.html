@@ -18,7 +18,7 @@
         .option-label {
             background-color: #ffffff;
         }
-        /* Clases de resultado (definidas por JS después de Check) */
+        /* Clases de resultado (Feedback Instantáneo) */
         .correct-answer-card {
             background-color: #d1fae5; /* Verde muy claro */
             border-left: 5px solid #059669; /* Verde esmeralda */
@@ -27,25 +27,20 @@
             background-color: #fee2e2; /* Rojo muy claro */
             border-left: 5px solid #ef4444; /* Rojo fuerte */
         }
+        /* Estilos específicos para feedback instantáneo */
+        .checked-mode {
+            pointer-events: none; /* Deshabilita el click después de responder */
+        }
         .correct-feedback {
             color: #059669;
-            font-weight: 600;
         }
         .rationale-box {
-            background-color: #f0f9ff; /* Azul muy claro */
-            border: 1px solid #93c5fd; /* Azul de borde */
-            color: #1e40af; /* Azul oscuro para el texto */
-        }
-        .animate-pop {
-            animation: pop-in 0.3s ease-out;
-        }
-        @keyframes pop-in {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+            background-color: #f0fdf4;
+            border: 1px solid #d1fae5;
         }
     </style>
     <script>
-        // Array de 155 preguntas generadas a partir del PDF "Organización del Departamento de Pisos.pdf"
+        // Array de 173 preguntas generadas a partir del temario
         const allQuestions = [
             { q: "¿Qué figura profesional, de reconocido prestigio, asume la organización del Departamento de Pisos?", o: ["Jefe/a de Recepción", "Gobernanta/e", "Director/a de Alojamiento", "Maître."], a: 1, r: "La organización del Departamento de Pisos recae en la figura de la Gobernanta o el Gobernanta, un puesto clave y de gran prestigio en la hostelería." },
             { q: "¿Cuál es la posición del Departamento de Pisos dentro del servicio de alojamiento a los clientes?", o: ["Secundaria", "Central", "Auxiliar", "Periférica"], a: 1, r: "El Departamento de Pisos ocupa el lugar central del servicio de alojamiento, siendo su inexistencia una inviabilidad para la prestación del servicio." },
@@ -98,7 +93,7 @@
             { q: "¿Cuál es una característica de la organización del Housekeeping para el cliente familiar respecto a las cunas y camas supletorias?", o: ["Se instalan solo si el cliente lo solicita tras el check-in", "El cliente debe encontrarlas instaladas a su llegada", "Se cobra un suplemento siempre", "Se dejan en el almacén para que el cliente las instale"], a: 1, r: "El cliente debe encontrarlas instaladas y en perfecto estado de conservación a su llegada." },
             { q: "¿Qué tipo de preferencia de limpieza se da a las habitaciones de clientes familiares?", o: ["Se limpian las últimas del turno", "No tienen preferencia", "Se les da preferencia para respetar horarios de descanso de los niños", "Se limpian por orden de salida"], a: 2, r: "Se da preferencia de limpieza para poder respetar los horarios de descanso de los niños." },
             { q: "¿Qué establece Cataluña, siendo pionera en Europa, para los destinos de turismo familiar?", o: ["La certificación 'Blue Flag'", "La marca certificada 'Destino de Turismo Familiar (DTF)'", "La marca 'Sol y Playa'", "El sello 'Q de Calidad'"], a: 1, r: "Cataluña es pionera en Europa al crear la marca certificada de destinos de turismo familiar (DTF)." },
-            { q: "¿Qué debe considerar el Housekeeping respecto a los minibares para el cliente familiar?", o: ["Eliminarlos", "Dejarlos abiertos siempre", "Posibilidad de poder cerrarlos con llave", "Llenarlos con juguetes"], a: 2, r: "Se debe ofrecer la posibilidad de cerrar los minibares con llave por seguridad." },
+            { q: "¿Qué debe considerar el Housekeeping respecto a los minibares para el cliente familiar?", o: ["Eliminar los", "Dejarlos abiertos siempre", "Posibilidad de poder cerrarlos con llave", "Llenarlos con juguetes"], a: 2, r: "Se debe ofrecer la posibilidad de cerrar los minibares con llave por seguridad." },
             { q: "Para el cliente ejecutivo, ¿cuánto tiempo pasa generalmente en el hotel?", o: ["Suele pasar muchas horas", "Pasa muy pocas horas", "Permanece solo en las zonas comunes", "Pasa todo el día"], a: 1, r: "Este tipo de cliente, generalmente, pasa muy pocas horas en el hotel; sale temprano y vuelve tarde." },
             { q: "¿Por qué el cliente ejecutivo es apreciado en el Departamento de Pisos?", o: ["Porque consume mucho en el minibar", "Porque rara vez emite queja", "Porque permite realizar las tareas sin priorizar habitaciones y elimina tiempos muertos", "Porque deja mucha propina"], a: 2, r: "Es apreciado porque facilita la organización, permitiendo realizar tareas sin priorizar y eliminando tiempos muertos." },
             { q: "¿Qué puede hacer el Housekeeping en hoteles de cliente ejecutivo respecto a los turnos de camarera de mañana?", o: ["Retrasar la incorporación", "Reducir el personal", "Incorporar el turno temprano", "Asignarles solo tareas administrativas"], a: 2, r: "Los turnos de camarera de mañana se pueden incorporar temprano, ya que el cliente ejecutivo sale temprano." },
@@ -148,7 +143,7 @@
             { q: "¿En qué se basan los Hoteles Ecológicos?", o: ["Solo en el diseño moderno", "En el respeto y el vínculo con el medioambiente", "En la reducción de personal", "En la comida vegetariana"], a: 1, r: "Se basan en el respeto y el vínculo con el medioambiente." },
             { q: "¿Qué certificación de calidad buscan los hoteles ecológicos?", o: ["ISO 9.001", "ISO 14.001", "Q de Calidad Turística", "Bandera Azul"], a: 1, r: "Tienen objetivos muy concretos de acreditación y certificación de calidad, mencionando específicamente la ISO 14.001." },
             { q: "¿Qué tipo de productos de limpieza se deben utilizar en un Hotel Ecológico?", o: ["Los más fuertes", "Los mínimos en cantidad y especiales (de bajo impacto)", "Los que huelan mejor", "Los más económicos"], a: 1, r: "Los productos deben ser los mínimos en cantidad y especiales (de bajo impacto)." },
-            { q: "¿Qué idea prevalece en el Housekeeping de un Hotel Ecológico?", o: ["La de desechar", "La de reuBlizar (no generar envases y reciclar)", "La de comprar a granel", "La de usar más lencería"], a: 1, r: "Prevalece la idea de reutilizar, no generar envases y reciclar todo lo posible." },
+            { q: "¿Qué idea prevalece en el Housekeeping de un Hotel Ecológico?", o: ["La de desechar", "La de reutilizar (no generar envases y reciclar)", "La de comprar a granel", "La de usar más lencería"], a: 1, r: "Prevalece la idea de reutilizar, no generar envases y reciclar todo lo posible." },
             { q: "¿Qué tipo de recogida de basuras se realiza durante la limpieza de la habitación en un hotel ecológico?", o: ["Recogida normal", "Recogida selectiva (con contenedores específicos en el carrito)", "Recogida cada tres días", "Solo de papel"], a: 1, r: "Se realiza recogida selectiva de basuras, con contenedores específicos en el carrito de la camarera." },
             { q: "¿Quién debe estar sensibilizado con el medioambiente en un hotel ecológico?", o: ["Solo la dirección", "Solo el personal de mantenimiento", "Los clientes y todo el personal", "Solo la camarera de pisos"], a: 2, r: "Los clientes están sensibilizados, y la política debe implicar a todo el personal." },
             { q: "En un hotel familiar, además de cunas, ¿qué otro elemento se considera una necesidad para bebés en los cuartos de baño?", o: ["Espejos de aumento", "Tablas para cambio de pañales", "Bañera para adultos", "Secador de pelo"], a: 1, r: "Se requiere la disposición de tablas para cambio de pañales y bolsas de plástico para depositarlos." },
@@ -223,14 +218,11 @@
         ];
 
         let selectedQuestions = [];
-        let currentQuestionIndex = 0;
         let score = 0;
         let answeredCount = 0;
-        let isBlockChecked = false; // Bandera para saber si el bloque actual fue revisado
         const questionCount = 10; // Número fijo de preguntas en el test
 
         function startTest() {
-            // Asegura que hay suficientes preguntas
             if (allQuestions.length < questionCount) {
                 alert("No hay suficientes preguntas disponibles para el test de 10 preguntas.");
                 return;
@@ -241,18 +233,16 @@
             indices.sort(() => Math.random() - 0.5);
             selectedQuestions = indices.slice(0, questionCount).map(index => ({
                 ...allQuestions[index],
-                userAnswer: null, // Índice de la respuesta del usuario (0, 1, 2, 3)
-                isCorrect: null, // Booleano para el resultado
-                id: index // Mantener el ID original de la pregunta para trazabilidad
+                userAnswer: null,
+                isCorrect: null,
+                isAnswered: false, // Nuevo estado para indicar que se ha intentado responder
+                id: index
             }));
 
             score = 0;
             answeredCount = 0;
-            isBlockChecked = false;
-            document.getElementById('check-button').disabled = false;
-            document.getElementById('check-button').textContent = 'Comprobar Bloque';
             document.getElementById('results-container').classList.add('hidden');
-            document.getElementById('question-status-container').innerHTML = ''; // Limpiar estado
+            document.getElementById('question-status-container').innerHTML = '';
             renderQuiz();
         }
 
@@ -261,12 +251,11 @@
             let html = '';
 
             selectedQuestions.forEach((q, index) => {
-                // Generar un ID único para el grupo de radio de cada pregunta
                 const questionId = `q${index}`;
 
-                // Determinar clases de la tarjeta según si fue revisada y si es correcta
+                // Determinar clases de la tarjeta
                 let cardClass = 'question-card bg-white p-6 rounded-xl mb-6 border border-gray-200 animate-pop';
-                if (isBlockChecked) {
+                if (q.isAnswered) {
                     if (q.isCorrect === true) {
                         cardClass = 'question-card correct-answer-card p-6 rounded-xl mb-6 animate-pop';
                     } else if (q.isCorrect === false) {
@@ -283,28 +272,31 @@
                     
                     // Clases para el label de la opción
                     let labelClass = 'option-label flex items-center p-4 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-gray-100 mb-2';
-                    if (isBlockChecked) {
-                        // Modo Revisión/Resultado
+                    const isDisabled = q.isAnswered;
+
+                    if (isDisabled) {
+                        // Modo Feedback
                         if (optionIndex === q.a) {
-                             // Si es la respuesta correcta
+                            // Respuesta Correcta
                             labelClass = 'option-label checked-mode flex items-center p-4 rounded-lg transition duration-200 ease-in-out mb-2 bg-green-200 border border-green-500';
                         } else if (isChecked && q.isCorrect === false) {
-                            // Si es la respuesta seleccionada por el usuario E INCORRECTA
-                             labelClass = 'option-label checked-mode flex items-center p-4 rounded-lg transition duration-200 ease-in-out mb-2 bg-red-200 border border-red-500';
+                            // Respuesta Seleccionada por el usuario E INCORRECTA
+                            labelClass = 'option-label checked-mode flex items-center p-4 rounded-lg transition duration-200 ease-in-out mb-2 bg-red-200 border border-red-500';
                         }
                     } else if (isChecked) {
-                         // Modo Práctica (antes de comprobar) - Se aplica el estilo de seleccionado
-                         labelClass = 'option-label flex items-center p-4 rounded-lg cursor-pointer transition duration-200 ease-in-out mb-2 bg-gray-300';
+                        // Modo Práctica (antes de feedback) - Estilo de seleccionado
+                        labelClass = 'option-label flex items-center p-4 rounded-lg cursor-pointer transition duration-200 ease-in-out mb-2 bg-gray-300';
                     }
 
+
                     html += `<label for="${optionInputId}" class="${labelClass}">`;
-                    html += `<input type="radio" id="${optionInputId}" name="${questionId}" value="${optionIndex}" class="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500 mr-3" ${isChecked ? 'checked' : ''} ${isBlockChecked ? 'disabled' : ''} onchange="selectAnswer(${index}, ${optionIndex})">`;
+                    html += `<input type="radio" id="${optionInputId}" name="${questionId}" value="${optionIndex}" class="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500 mr-3" ${isChecked ? 'checked' : ''} ${isDisabled ? 'disabled' : ''} onchange="selectAnswer(${index}, ${optionIndex})">`;
                     html += `<span class="text-gray-700">${option}</span>`;
                     html += `</label>`;
                 });
                 
-                // Mostrar Racional y feedback en modo revisión
-                if (isBlockChecked) {
+                // Mostrar Racional y feedback en modo feedback (isAnswered)
+                if (q.isAnswered) {
                     html += `<div class="mt-4 p-4 rationale-box rounded-lg">`;
                     if (q.isCorrect) {
                         html += `<p class="font-bold correct-feedback">¡Respuesta Correcta! 🎉</p>`;
@@ -320,6 +312,7 @@
 
             quizContainer.innerHTML = html;
             renderStatusDots();
+            displayResults(); // Actualizar resultados al renderizar
         }
 
         function renderStatusDots() {
@@ -328,16 +321,14 @@
 
             selectedQuestions.forEach((q, index) => {
                 let colorClass = 'bg-gray-400'; // No respondida
-                if (q.userAnswer !== null) {
-                    colorClass = 'bg-yellow-500'; // Respondida pero no revisada
-                    if (isBlockChecked) {
-                        if (q.isCorrect === true) {
-                            colorClass = 'bg-green-500'; // Correcta
-                        } else if (q.isCorrect === false) {
-                            colorClass = 'bg-red-500'; // Incorrecta
-                        }
+                if (q.isAnswered) {
+                    if (q.isCorrect === true) {
+                        colorClass = 'bg-green-500'; // Correcta
+                    } else if (q.isCorrect === false) {
+                        colorClass = 'bg-red-500'; // Incorrecta
                     }
-                }
+                } 
+
 
                 dotsHtml += `<div class="w-4 h-4 rounded-full ${colorClass} mx-1 shadow-md" title="Pregunta ${index + 1}"></div>`;
             });
@@ -345,67 +336,50 @@
             statusContainer.innerHTML = dotsHtml;
         }
 
-        // FUNCIÓN CORREGIDA
+        // FUNCIÓN CLAVE MODIFICADA para FEEDBACK INSTANTÁNEO
         function selectAnswer(questionIndex, optionIndex) {
-            if (isBlockChecked) return; // No permitir cambios si ya se revisó
-
             const question = selectedQuestions[questionIndex];
             
-            // **Lógica corregida:** Un radio button siempre registra la nueva selección. 
-            // Esto asegura que la respuesta se registre de forma estándar.
+            // Si ya se respondió y se dio feedback, no permitir cambiar
+            if (question.isAnswered) return; 
+
+            // 1. Registrar la respuesta
             question.userAnswer = optionIndex;
-            
 
-            // Forzar la actualización del conteo de respuestas
-            answeredCount = selectedQuestions.filter(q => q.userAnswer !== null).length;
-            
-            // Re-renderizar para aplicar el estilo de 'seleccionado' (fondo gris)
-            renderQuiz(); 
-        }
+            // 2. Determinar si es correcta
+            const isCorrect = question.userAnswer === question.a;
+            question.isCorrect = isCorrect;
+            question.isAnswered = true; // Marcar como respondida
 
-        function checkBlock() {
-            if (isBlockChecked) return; // Evitar doble comprobación
-
-            score = 0;
-            let allAnswered = true;
-            
-            selectedQuestions.forEach(q => {
-                if (q.userAnswer === null) {
-                    allAnswered = false;
-                }
-                
-                if (q.userAnswer === q.a) {
-                    q.isCorrect = true;
-                    score++;
-                } else {
-                    q.isCorrect = false;
-                }
-            });
-
-            if (!allAnswered) {
-                 // Advertencia si no se respondió a todo
+            // 3. Actualizar puntuación
+            if (isCorrect) {
+                score++;
             }
-
-            isBlockChecked = true;
-            document.getElementById('check-button').disabled = true;
-            document.getElementById('check-button').textContent = 'Bloque Comprobado';
             
-            displayResults();
-            renderQuiz(); // Redibujar para mostrar colores y explicaciones
+            // 4. Actualizar conteo de respondidas
+            answeredCount = selectedQuestions.filter(q => q.isAnswered).length;
+
+            // 5. Re-renderizar para mostrar colores, el rationale y el estado
+            renderQuiz(); 
         }
 
         function displayResults() {
             const resultsContainer = document.getElementById('results-container');
             const scoreDisplay = document.getElementById('score-display');
             
-            resultsContainer.classList.remove('hidden');
-            scoreDisplay.innerHTML = `<h2 class="text-3xl font-bold mb-2">Resultados del Bloque:</h2>
-                                      <p class="text-2xl font-semibold text-gray-800">Has obtenido <span class="text-blue-600">${score}</span> de ${questionCount} respuestas correctas.</p>`;
+            // Solo mostrar resultados cuando se hayan respondido todas las preguntas
+            if (answeredCount === questionCount) {
+                resultsContainer.classList.remove('hidden');
+                scoreDisplay.innerHTML = `<h2 class="text-3xl font-bold mb-2">Resultados Finales:</h2>
+                                        <p class="text-2xl font-semibold text-gray-800">Has obtenido <span class="text-blue-600">${score}</span> de ${questionCount} respuestas correctas.</p>`;
+            } else {
+                resultsContainer.classList.add('hidden');
+            }
+        
         }
 
         // Asignación de eventos al cargar el DOM
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('check-button').addEventListener('click', checkBlock);
             document.getElementById('restart-button').addEventListener('click', startTest);
             startTest(); // Iniciar el test automáticamente al cargar
         });
@@ -417,7 +391,7 @@
         <header class="text-center mb-8 p-6 bg-white rounded-xl shadow-lg border-b-4 border-blue-500">
             <h1 class="text-4xl font-extrabold text-gray-800 mb-2">Test de Organización del Departamento de Pisos</h1>
             <p class="text-lg text-gray-600">Test aleatorio de 10 preguntas extraídas del documento sobre la **Organización del Departamento de Pisos**.</p>
-            <p class="text-md text-blue-500 font-medium mt-2">¡Ideal para repasar! ✍️</p>
+            <p class="text-md text-blue-500 font-medium mt-2">¡Feedback instantáneo al elegir la opción! ✍️</p>
             
             <div id="question-status-container" class="flex justify-center mt-4 flex-wrap gap-1 border-t pt-4">
                 </div>
@@ -431,10 +405,7 @@
         <div id="quiz-container">
             </div>
 
-        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-10">
-            <button id="check-button" class="px-8 py-4 bg-green-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-green-700 transition duration-300 transform hover:scale-105">
-                Comprobar Bloque
-            </button>
+        <div class="flex justify-center mt-10">
             <button id="restart-button" class="px-8 py-4 bg-red-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-red-700 transition duration-300 transform hover:scale-105">
                 Reiniciar Test
             </button>
